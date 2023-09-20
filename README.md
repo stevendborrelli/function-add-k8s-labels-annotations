@@ -48,3 +48,26 @@ composition pipelines are complete, each resource should have
 the labels and annotations in the Composition pipeline input added.
 
 `kubectl apply -f manifests/examples/network-claim.yaml`
+
+## Running This Function In a Composition
+
+Once the function is installed into a cluster, it can be used
+in a composition by defining the following step with an `input`
+containing the labels and annotations to be added.
+
+This pipeline step should be run after all Desired Resources have been
+defined.
+
+```yaml
+  - step: add-k8s-labels-annotations
+    functionRef:
+      name: function-add-k8s-labels-annotations
+    input:
+      apiVersion: meta.borrelli.fn.crossplane.io/v1beta1
+      kind: Input
+      labels:
+        xfn-provisioned-by: crossplane
+        xfn-owner: platform-engineering
+      annotations:
+        added-by-xfn: "true"
+```
