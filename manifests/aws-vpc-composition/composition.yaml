@@ -1,0 +1,61 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: xlabels.fn-demo.crossplane.io
+  labels:
+    provider: aws
+spec:
+  writeConnectionSecretsToNamespace: crossplane-system
+  compositeTypeRef:
+    apiVersion: fn-demo.crossplane.io/v1alpha1
+    kind: XNetwork
+  mode: Pipeline
+  pipeline:
+  - step: base-patch-and-transform
+    functionRef:
+      name: function-patch-and-transform
+    input:
+      apiVersion: pt.fn.crossplane.io/v1beta1
+      kind: Resources
+      resources:
+      - base:
+          apiVersion: ec2.aws.upbound.io/v1beta1
+          kind: VPC
+          spec:
+            forProvider:
+              region: eu-west-1
+              cidrBlock: 192.168.0.0/16
+              enableDnsSupport: true
+              enableDnsHostnames: true
+              tags:
+                Owner: Platform Team
+                Name: platformref-vpc
+        name: platformref-vpc
+        patches:
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.id
+          toFieldPath: metadata.labels[networks.meta.fn.crossplane.io/network-id]
+      - base:
+          apiVersion: ec2.aws.upbound.io/v1beta1
+          kind: InternetGateway
+          spec:
+            forProvider:
+              region: eu-west-1
+              vpcIdSelector:
+                matchControllerRef: true
+        name: gateway
+        patches:
+          - type: FromCompositeFieldPath
+            fromFieldPath: spec.id
+            toFieldPath: metadata.labels[networks.meta.fn.crossplane.io/network-id]
+  - step: add-k8s-labels-annotations
+    functionRef:
+      name: function-add-k8s-labels-annotations
+    input:
+      apiVersion: meta.borrelli.fn.crossplane.io/v1beta1
+      kind: Input
+      labels:
+        xfn-provisioned-by: crossplane
+        xfn-owner: platform-engineering
+      annotations:
+        added-by-xfn: "true"

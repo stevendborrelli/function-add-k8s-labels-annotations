@@ -5,12 +5,13 @@ import (
 
 	"github.com/crossplane/crossplane-runtime/pkg/errors"
 	"github.com/crossplane/crossplane-runtime/pkg/logging"
+	"github.com/crossplane/crossplane-runtime/pkg/meta"
 
 	fnv1beta1 "github.com/crossplane/function-sdk-go/proto/v1beta1"
 	"github.com/crossplane/function-sdk-go/request"
 	"github.com/crossplane/function-sdk-go/response"
 
-	"github.com/crossplane/function-template-go/input/v1beta1"
+	"github.com/stevendborrelli/function-add-k8s-labels-annotations/input/v1beta1"
 )
 
 // Function returns whatever response you ask it to.
@@ -47,7 +48,25 @@ func (f *Function) RunFunction(_ context.Context, req *fnv1beta1.RunFunctionRequ
 	// and rsp - https://pkg.go.dev/github.com/crossplane/function-sdk-go
 	//
 	// Also, be sure to look at the tips in README.md
-	response.Normalf(rsp, "I was run with input %q", in.Example)
+
+	desired, err := request.GetDesiredComposedResources(req) // function-sdk-go
+	if err != nil {
+		response.Fatal(rsp, errors.Wrapf(err, "cannot get desired composed resources from %T", req))
+		return rsp, nil
+	}
+
+	for name, dr := range desired {
+		f.log.Debug("Desired Resource", "composed-resource-name", name)
+		meta.AddLabels(dr.Resource, in.Labels) // Crossplane-runtime helper
+		meta.AddAnnotations(dr.Resource, in.Annotations)
+	}
+
+	if err := response.SetDesiredComposedResources(rsp, desired); err != nil {
+		response.Fatal(rsp, errors.Wrapf(err, "cannot set desired composed resources from %T", req))
+		return rsp, nil
+	}
+
+	response.Normalf(rsp, "Kubernetes Labels and Annotations Added Successfully")
 
 	return rsp, nil
 }

@@ -1,0 +1,13 @@
+apiVersion: pkg.crossplane.io/v1beta1
+kind: Function
+metadata:
+  name: function-add-k8s-labels-annotations
+spec:
+  package: index.docker.io/steve/function-add-k8s-labels-annotations:v0.0.1
+---
+apiVersion: pkg.crossplane.io/v1beta1
+kind: Function
+metadata:
+  name: function-patch-and-transform
+spec:
+  package: index.docker.io/steve/function-patch-and-transform:v0.1.0
