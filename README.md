@@ -14,7 +14,7 @@ the master branch. The newest build tags can be seen at <https://hub.docker.com/
 ```console
 helm repo add crossplane-master https://charts.crossplane.io/master --force-update
 
-helm upgrade --install crossplane --namespace crossplane-system crossplane-master/crossplane --version v1.14.0-rc.0.365.g7f33d2f2 --create-namespace --set image.repository=crossplane/crossplane --set image.tag=v1.14.0-rc.0.365.g7f33d2f2 --set "args={--debug,--enable-usages}"
+helm upgrade --install crossplane --namespace crossplane-system crossplane-master/crossplane --devel --set "args={--debug,--enable-usages}"
 ```
 
 ## Running this function in a Composition
